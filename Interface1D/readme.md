@@ -17,8 +17,6 @@ Its simplicity provides a great platform for learning some of the fundamental id
    - Winning color takes over the screen.
    - Press **R** for re-starting the game.
 
-
-
 # Concepts
 
 ### Feedback
@@ -37,7 +35,6 @@ For example, when the red player wins, the screen is filled with the color red.
 ### States
 
 A state machine helps users create a clear mental model of what your software is doing at different points in time. It also helps during design, coding and, in the future, extending your code.
-
 
 # Interface Architecture
 
@@ -69,19 +66,11 @@ Keyboard input is under controller.js
 ```javascript
 function keyPressed() {
   if (key == "A" || key == "a") {
-    playerOne.move(-1);
+    player.move(-1);
   }
 
   if (key == "D" || key == "d") {
-    playerOne.move(1);
-  }
-
-  if (key == "J" || key == "j") {
-    playerTwo.move(-1);
-  }
-
-  if (key == "L" || key == "l") {
-    playerTwo.move(1);
+    player.move(1);
   }
 
   if (key == "R" || key == "r") {
@@ -215,12 +204,13 @@ currentFrame() {
 
 # What you should do next...
 
-1. If you are not familiar with p5js, watch the [Coding Train](https://www.youtube.com/playlist?list=PLRqwX-V7Uu6Zy51Q-x9tMWIv9cueOFTFA) playlist. 
-2. Read through the code so you can understand it. 
+1. If you are not familiar with p5js, watch the [Coding Train](https://www.youtube.com/playlist?list=PLRqwX-V7Uu6Zy51Q-x9tMWIv9cueOFTFA) playlist.
+2. Read through the code so you can understand it.
 3. Try to make some modifications, for example:
-   * Change the color of a player
-   * Make the display longer
-   * Add more players or more targets
-   * Add a new state to the game
+
+   - Change the color of a player
+   - Make the display longer
+   - Add more players or more targets
+   - Add a new state to the game
 
 4. Now try creating your own game and behaviors...
