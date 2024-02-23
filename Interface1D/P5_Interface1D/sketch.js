@@ -10,7 +10,7 @@ let displaySize = 30; // how many pixels are visible in the game
 let pixelSize = 20; // how big each 'pixel' looks on screen
 
 let player; // Adding 2 players to the game
-let target; // and one target for players to catch.
+let mines = []; // and one target for players to catch.
 
 let display; // Aggregates our final visual output before showing it on the screen
 
@@ -31,17 +31,22 @@ function setup() {
     displaySize
   ); // Initializing players
 
-  target = new Player(
-    color(255, 255, 0),
-    parseInt(random(0, displaySize)),
-    displaySize
-  ); // Initializing target using the Player class
+  max = displaySize / 3;
+  num_mines = Math.floor(Math.random() * max);
+  for (let i = 0; i < num_mines; i++) {
+    let mine = new Player(
+      color(255, 255, 0),
+      parseInt(random(0, displaySize)),
+      displaySize
+    ); // Initializing mine using the Player class
+    mines.push(mine);
+  }
 
   collisionAnimation = new Animation(); // Initializing animation
 
   controller = new Controller(); // Initializing controller
 
-  score = { max: 3, winner: color(0, 0, 0) }; // score stores max number of points, and color
+  score = 0; // score stores the number of mines avoided
 }
 
 function draw() {

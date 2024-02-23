@@ -3,7 +3,8 @@
 class Controller {
   // This is the state we start with.
   constructor() {
-    this.gameState = "PLAY";
+    this.gameState = "SHOW_MINES";
+    this.timer = null;
   }
 
   // This is called from draw() in sketch.js with every frame
@@ -13,6 +14,26 @@ class Controller {
     /////////////////////////////////////////////////////////////////
     switch (this.gameState) {
       // This is the main game state, where the playing actually happens
+      case "SHOW_MINES":
+        // clear screen at frame rate so we always start fresh
+        display.clear();
+
+        // now add the mines
+        for (let i = 0; i < mines.length; i++) {
+          display.setPixel(mines[i].position, mines[i].playerColor);
+        }
+
+        const timerCallback = () => {
+          // display.setAllPixels(mines[0].playerColor);
+          // this.timer = setTimeout(timerCallback, 3000);
+          this.gameState = "PLAY";
+        };
+
+        // Set the timer for 5 seconds (10000 milliseconds)
+        this.timer = setTimeout(timerCallback, 10000);
+
+        break;
+
       case "PLAY":
         // clear screen at frame rate so we always start fresh
         display.clear();
@@ -20,13 +41,13 @@ class Controller {
         // show all players in the right place, by adding them to display buffer
         display.setPixel(player.position, player.playerColor);
 
-        // now add the target
-        display.setPixel(target.position, target.playerColor);
-
-        // check if player has caught target
-        if (player.position == target.position) {
-          player.score++; // increment score
-          this.gameState = "COLLISION"; // go to COLLISION state
+        // check if player has hit a mine
+        for (let i = 0; i < mines.length; i++) {
+          if (player.position == mines[i].position) {
+            this.gameState = "COLLISION"; // go to COLLISION state
+          } else if (player.position == mines[i].position + 1) {
+            player.score++; // increment score
+          }
         }
 
         break;
@@ -47,16 +68,11 @@ class Controller {
 
         //check if animation is done and we should move on to another state
         if (frameToShow == collisionAnimation.animation.length - 1) {
-          // We've hit score max, this player wins
-          if (player.score >= score.max) {
-            score.winner = player.playerColor; // store winning color in score.winner
-            this.gameState = "SCORE"; // go to state that displays score
-
-            // We've hit score max, this player wins
-          } else {
-            target.position = parseInt(random(0, displaySize)); // move the target to a new random position
-            this.gameState = "PLAY"; // back to play state
-          }
+          // We've reached a mine
+          this.gameState = "SCORE"; // go to state that displays score
+        } else {
+          target.position = parseInt(random(0, displaySize)); // move the target to a new random position
+          this.gameState = "PLAY"; // back to play state
         }
 
         break;
@@ -93,8 +109,12 @@ function keyPressed() {
     player.move(1);
   }
 
+  if (key == "W" || key == "w") {
+    player.jump();
+  }
+
   // When you press the letter R, the game resets back to the play state
   if (key == "R" || key == "r") {
-    controller.gameState = "PLAY";
+    controller.gameState = "SHOW_MINES";
   }
 }
