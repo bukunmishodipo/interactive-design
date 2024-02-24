@@ -29,8 +29,10 @@ class Controller {
           this.gameState = "PLAY";
         };
 
+        // clearTimeout(this.timer);
+
         // Set the timer for 5 seconds (10000 milliseconds)
-        this.timer = setTimeout(timerCallback, 10000);
+        this.timer = setTimeout(timerCallback, 5000);
 
         break;
 
@@ -45,8 +47,6 @@ class Controller {
         for (let i = 0; i < mines.length; i++) {
           if (player.position == mines[i].position) {
             this.gameState = "COLLISION"; // go to COLLISION state
-          } else if (player.position == mines[i].position + 1) {
-            player.score++; // increment score
           }
         }
 
@@ -69,26 +69,46 @@ class Controller {
         //check if animation is done and we should move on to another state
         if (frameToShow == collisionAnimation.animation.length - 1) {
           // We've reached a mine
-          this.gameState = "SCORE"; // go to state that displays score
-        } else {
-          target.position = parseInt(random(0, displaySize)); // move the target to a new random position
-          this.gameState = "PLAY"; // back to play state
+          this.gameState = "RESET"; // go to state that displays score
         }
 
         break;
 
-      // Game is over. Show winner and clean everything up so we can start a new game.
-      case "SCORE":
-        // reset everyone's score
-        player.score = 0;
+      case "RESET":
+        display.clear();
+        let numberSet = new Set();
+        for (let i = 0; i < displaySize; i++) {
+          numberSet.add(i);
+        }
 
-        // put the target somewhere else, so we don't restart the game with player and target in the same place
-        target.position = parseInt(random(1, displaySize));
+        let randomIndex = Math.floor(Math.random() * numberSet.size);
+        let randomNumber = [...numberSet][randomIndex];
 
-        //light up w/ winner color by populating all pixels in buffer with their color
-        display.setAllPixels(score.winner);
+        numberSet.delete(randomNumber);
+        player.position = randomNumber;
 
+        for (let i = 0; i < mines.length; i++) {
+          randomIndex = Math.floor(Math.random() * numberSet.size);
+          randomNumber = [...numberSet][randomIndex];
+          numberSet.delete(randomNumber);
+          mines[i].position = randomNumber;
+        }
+
+        this.gameState = "SHOW_MINES";
         break;
+
+      // // Game is over. Show winner and clean everything up so we can start a new game.
+      // case "SCORE":
+      //   // reset everyone's score
+      //   player.score = 0;
+
+      //   // put the target somewhere else, so we don't restart the game with player and target in the same place
+      //   target.position = parseInt(random(1, displaySize));
+
+      //   //light up w/ winner color by populating all pixels in buffer with their color
+      //   display.setAllPixels(score.winner);
+
+      //   break;
 
       // Not used, it's here just for code compliance
       default:
@@ -100,21 +120,26 @@ class Controller {
 // This function gets called when a key on the keyboard is pressed
 function keyPressed() {
   // Move player one to the left if letter A is pressed
-  if (key == "A" || key == "a") {
+  if ((key == "A" || key == "a") && !player.midJump) {
     player.move(-1);
   }
 
   // And so on...
-  if (key == "D" || key == "d") {
+  if ((key == "D" || key == "d") && !player.midJump) {
     player.move(1);
   }
 
   if (key == "W" || key == "w") {
-    player.jump();
+    player.jump(1);
+  }
+
+  if (key == "Q" || key == "q") {
+    player.jump(-1);
   }
 
   // When you press the letter R, the game resets back to the play state
   if (key == "R" || key == "r") {
-    controller.gameState = "SHOW_MINES";
+    clearTimeout(controller.timer);
+    controller.gameState = "RESET";
   }
 }
