@@ -5,6 +5,7 @@ class Controller {
   constructor() {
     this.gameState = "SHOW_MINES";
     this.timer = null;
+    this.jumpDirection = null;
   }
 
   // This is called from draw() in sketch.js with every frame
@@ -45,7 +46,7 @@ class Controller {
 
         // check if player has hit a mine
         for (let i = 0; i < mines.length; i++) {
-          if (player.position == mines[i].position) {
+          if (player.position == mines[i].position && !player.midJump) {
             this.gameState = "COLLISION"; // go to COLLISION state
           }
         }
@@ -70,6 +71,35 @@ class Controller {
         if (frameToShow == collisionAnimation.animation.length - 1) {
           // We've reached a mine
           this.gameState = "RESET"; // go to state that displays score
+        }
+
+        break;
+
+      // This state is used to play an animation, after a target has been caught by a player
+      case "JUMP":
+        // clear screen at frame rate so we always start fresh
+        display.clear();
+        player.midJump = true;
+        // play explosion animation one frame at a time.
+        // first figure out what frame to show
+        let frame = player.currentFrame(); // this grabs number of current frame and increments it
+
+        // then grab every pixel of frame and put it into the display buffer
+
+        if (this.jumpDirection == -1) {
+          display.setPixel(player.position + 1, color(180, 64, 63));
+        }
+
+        if (this.jumpDirection == 1) {
+          display.setPixel(player.position - 1, color(180, 64, 63));
+        }
+
+        display.setPixel(player.position, color(180, 64, 63));
+
+        //check if animation is done and we should move on to another state
+        if (frame == 2) {
+          player.currentFrameCount = -1;
+          this.gameState = "PLAY"; // play game
         }
 
         break;
@@ -130,11 +160,15 @@ function keyPressed() {
   }
 
   if (key == "W" || key == "w") {
-    player.jump(1);
+    controller.jumpDirection = 1;
+    player.jump(controller.jumpDirection);
+    controller.gameState = "JUMP";
   }
 
   if (key == "Q" || key == "q") {
-    player.jump(-1);
+    controller.jumpDirection = -1;
+    player.jump(controller.jumpDirection);
+    controller.gameState = "JUMP";
   }
 
   // When you press the letter R, the game resets back to the play state

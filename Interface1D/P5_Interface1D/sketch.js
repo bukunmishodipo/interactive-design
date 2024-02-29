@@ -22,7 +22,7 @@ let collisionAnimation; // Where we store and manage the collision animation
 
 function setup() {
   createCanvas(displaySize * pixelSize, pixelSize); // dynamically sets canvas size
-  // frameRate(30);
+  // frameRate(120);
   display = new Display(displaySize, pixelSize); //Initializing the display
 
   numberSet = new Set();
@@ -34,7 +34,7 @@ function setup() {
   let randomNumber = [...numberSet][randomIndex];
   numberSet.delete(randomNumber);
 
-  player = new Player(color(255, 0, 0), randomNumber, displaySize); // Initializing players
+  player = new Player(color(241, 128, 126), randomNumber, displaySize); // Initializing players
 
   max = displaySize / 3;
   num_mines = Math.floor(Math.random() * max);

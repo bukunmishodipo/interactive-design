@@ -3,14 +3,16 @@
 
 class Player {
   constructor(_color, _position, _displaySize) {
-    this.jumpColor = _color;
-    this.originalColor = _color;
+    this.jumpColor = color(255, 255, 255);
     this.playerColor = _color;
     this.midJump = false;
     this.position = _position;
+    this.currentFrameCount = -1;
     // this.score = 0;
     this.displaySize = _displaySize;
   }
+
+  // if player is jumping, change the color in the right position
 
   // Move player based on keyboard input
   move(_direction) {
@@ -26,13 +28,20 @@ class Player {
   }
 
   jump(_direction) {
-    this.midJump = true;
-    this.playerColor = this.jumpColor; // Change player color to jump color
-    this.position = this.position + _direction * 2; // Move player position by 2 units in the specified direction
-    display.setPixel(this.position, this.playerColor);
-    this.playerColor = this.originalColor; // Restore original player color
-    // display.setPixel(this.position, this.playerColor);
-    this.midJump = false;
+    let number0fFrames = 4;
+
+    // The animation mimics an explosion and this variable tracks where the wave is in the display
+    let k = 0;
+
+    for (let i = 0; i < number0fFrames; i++) {
+      // Animate to the left for the next 3 frames
+
+      // Increment animation pixel
+      if (i % 2 == 1 && k < 2) {
+        this.move(_direction);
+        k = k + 1;
+      }
+    }
 
     // if player hits the edge of display, loop around
     if (this.position < 0) {
@@ -40,5 +49,28 @@ class Player {
     } else if (this.position >= this.displaySize) {
       this.position = this.position - this.displaySize;
     }
+
+    this.midJump = false;
+  }
+
+  // updateColor() {
+  //   if (this.midJump) {
+  //     this.playerColor = this.jumpColor;
+  //     display.setPixel(this.position, this.playerColor);
+  //   } else {
+  //     this.playerColor = this.originalColor;
+  //     display.setPixel(this.position, this.playerColor);
+  //   }
+  // }
+
+  // This function advances animation to next frame and returns current frame number
+  currentFrame() {
+    this.currentFrameCount = this.currentFrameCount + 1;
+
+    if (this.currentFrameCount >= this.numberOfFrames) {
+      this.currentFrameCount = 0;
+    }
+
+    return this.currentFrameCount;
   }
 }
