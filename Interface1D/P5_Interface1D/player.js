@@ -3,13 +3,13 @@
 
 class Player {
   constructor(_color, _position, _displaySize) {
-    this.jumpColor = color(255, 255, 255);
     this.playerColor = _color;
     this.midJump = false;
     this.position = _position;
     this.currentFrameCount = -1;
-    // this.score = 0;
+    this.endReached = false;
     this.displaySize = _displaySize;
+    this.score = 0;
   }
 
   // if player is jumping, change the color in the right position
@@ -43,7 +43,7 @@ class Player {
       }
     }
 
-    // if player hits the edge of display, loop around
+    // // if player hits the edge of display, loop around
     if (this.position < 0) {
       this.position = this.displaySize + this.position;
     } else if (this.position >= this.displaySize) {
@@ -53,15 +53,9 @@ class Player {
     this.midJump = false;
   }
 
-  // updateColor() {
-  //   if (this.midJump) {
-  //     this.playerColor = this.jumpColor;
-  //     display.setPixel(this.position, this.playerColor);
-  //   } else {
-  //     this.playerColor = this.originalColor;
-  //     display.setPixel(this.position, this.playerColor);
-  //   }
-  // }
+  updateColor(_color) {
+    this.playerColor = _color;
+  }
 
   // This function advances animation to next frame and returns current frame number
   currentFrame() {

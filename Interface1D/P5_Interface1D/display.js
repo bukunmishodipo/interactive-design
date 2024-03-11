@@ -6,7 +6,7 @@ class Display {
   constructor(_displaySize, _pixelSize) {
     this.displaySize = _displaySize;
     this.pixelSize = _pixelSize;
-    this.initColor = color(0, 0, 0); // black color
+    this.initColor = color(130, 209, 115); // black color
     this.displayBuffer = [];
 
     // Assign black to all pixels. Black = off
@@ -32,6 +32,8 @@ class Display {
   show() {
     for (let i = 0; i < this.displaySize; i++) {
       //noStroke();
+      strokeWeight(3);
+      stroke(51, 51, 51);
       fill(this.displayBuffer[i]);
       rect(i * this.pixelSize, 0, this.pixelSize, this.pixelSize);
     }

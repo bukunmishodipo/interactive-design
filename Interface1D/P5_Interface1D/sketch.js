@@ -9,6 +9,9 @@
 let displaySize = 10; // how many pixels are visible in the game
 let pixelSize = 100; // how big each 'pixel' looks on screen
 
+let jumpSound;
+let collisionSound;
+
 let player; // Adding a player to the game
 let mines = []; // and one target for players to catch.
 
@@ -25,28 +28,33 @@ function setup() {
   // frameRate(120);
   display = new Display(displaySize, pixelSize); //Initializing the display
 
+  levels = [
+    new Level(color(51, 51, 51), 1, 200), // Level 1
+    new Level(color(51, 51, 51), 2, 150), // Level 2
+    new Level(color(51, 51, 51), 3, 150), // Level 3
+    new Level(color(51, 51, 51), 4, 100), // Level 3
+  ];
+
+  player = new Player(color(115, 29, 216, 100), 0, displaySize); // Initializing player
+
   numberSet = new Set();
-  for (let i = 0; i < displaySize; i++) {
+  for (let i = 1; i < displaySize - 1; i++) {
     numberSet.add(i);
   }
 
   let randomIndex = Math.floor(Math.random() * numberSet.size);
-  let randomNumber = [...numberSet][randomIndex];
-  numberSet.delete(randomNumber);
+  let randomPos = [...numberSet][randomIndex];
+  numberSet.delete(randomPos);
+  numberSet.delete(randomPos - 1);
+  numberSet.delete(randomPos + 1);
 
-  player = new Player(color(241, 128, 126), randomNumber, displaySize); // Initializing players
-
-  max = displaySize / 3;
-  num_mines = Math.floor(Math.random() * max);
-  if (num_mines == 0) {
-    num_mines++;
-  }
+  num_mines = levels[0].numberOfMines;
 
   for (let i = 0; i < num_mines; i++) {
     randomIndex = Math.floor(Math.random() * numberSet.size);
-    randomNumber = [...numberSet][randomIndex];
-    numberSet.delete(randomNumber);
-    let mine = new Player(color(255, 255, 0), randomNumber, displaySize); // Initializing mine using the Player class
+    randomPos = [...numberSet][randomIndex];
+    numberSet.delete(randomPos);
+    let mine = new Player(levels[0].mineColor, randomPos, displaySize); // Initializing mine using the Player class
     mines.push(mine);
   }
 
@@ -66,4 +74,9 @@ function draw() {
 
   // After we've updated our states, we show the current one
   display.show();
+}
+
+function preload() {
+  jumpSound = loadSound("./sounds/jumpSound.wav");
+  collisionSound = loadSound("./sounds/collisionSound2.mov");
 }

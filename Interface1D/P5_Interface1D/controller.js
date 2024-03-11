@@ -4,15 +4,17 @@ class Controller {
   // This is the state we start with.
   constructor() {
     this.gameState = "SHOW_MINES";
-    this.timer = null;
+    this.frameCounter = 0; // Initialize the frame counter
     this.jumpDirection = null;
+    this.currentLevelIndex = 0;
+    this.addMine = false;
+    this.currentLevel = levels[this.currentLevelIndex];
   }
+
+  setUpMines() {}
 
   // This is called from draw() in sketch.js with every frame
   update() {
-    // STATE MACHINE ////////////////////////////////////////////////
-    // This is where your game logic lives
-    /////////////////////////////////////////////////////////////////
     switch (this.gameState) {
       // This is the main game state, where the playing actually happens
       case "SHOW_MINES":
@@ -24,17 +26,12 @@ class Controller {
           display.setPixel(mines[i].position, mines[i].playerColor);
         }
 
-        const timerCallback = () => {
-          // display.setAllPixels(mines[0].playerColor);
-          // this.timer = setTimeout(timerCallback, 3000);
+        if (this.frameCounter >= this.currentLevel.framesForDelay) {
           this.gameState = "PLAY";
-        };
-
-        // clearTimeout(this.timer);
-
-        // Set the timer for 5 seconds (10000 milliseconds)
-        this.timer = setTimeout(timerCallback, 5000);
-
+          this.frameCounter = 0; // Reset the frame counter
+        } else {
+          this.frameCounter++;
+        }
         break;
 
       case "PLAY":
@@ -51,12 +48,34 @@ class Controller {
           }
         }
 
+        if (player.position == displaySize - 1) {
+          player.endReached = true;
+        }
+
+        if (player.endReached && player.position == 0) {
+          player.score++;
+          if (this.currentLevelIndex < levels.length - 1) {
+            this.gameState = "NEW_LEVEL";
+          } else {
+            this.gameState = "RESET";
+          }
+        }
+
+        break;
+
+      case "NEW_LEVEL":
+        this.currentLevelIndex += 1;
+        player.endReached = false;
+        this.currentLevel = levels[this.currentLevelIndex];
+        this.addMine = true;
+        this.gameState = "RESET";
         break;
 
       // This state is used to play an animation, after a target has been caught by a player
       case "COLLISION":
         // clear screen at frame rate so we always start fresh
         display.clear();
+        collisionSound.play();
 
         // play explosion animation one frame at a time.
         // first figure out what frame to show
@@ -70,7 +89,7 @@ class Controller {
         //check if animation is done and we should move on to another state
         if (frameToShow == collisionAnimation.animation.length - 1) {
           // We've reached a mine
-          this.gameState = "RESET"; // go to state that displays score
+          this.gameState = "RESET";
         }
 
         break;
@@ -79,6 +98,10 @@ class Controller {
       case "JUMP":
         // clear screen at frame rate so we always start fresh
         display.clear();
+        if (player.midJump) {
+          // When the jump starts
+          jumpSound.play(); // Play jump sound
+        }
         player.midJump = true;
         // play explosion animation one frame at a time.
         // first figure out what frame to show
@@ -87,18 +110,19 @@ class Controller {
         // then grab every pixel of frame and put it into the display buffer
 
         if (this.jumpDirection == -1) {
-          display.setPixel(player.position + 1, color(180, 64, 63));
+          display.setPixel(player.position + 1, color(100, 0, 164, 50));
         }
 
         if (this.jumpDirection == 1) {
-          display.setPixel(player.position - 1, color(180, 64, 63));
+          display.setPixel(player.position - 1, color(100, 0, 164, 50));
         }
 
-        display.setPixel(player.position, color(180, 64, 63));
+        display.setPixel(player.position, color(100, 0, 164, 50));
 
         //check if animation is done and we should move on to another state
         if (frame == 2) {
           player.currentFrameCount = -1;
+          player.midJump = false;
           this.gameState = "PLAY"; // play game
         }
 
@@ -106,39 +130,42 @@ class Controller {
 
       case "RESET":
         display.clear();
+        player.endReached = false;
+        this.frameCounter = 0;
+        player.position = 0;
+
+        if (!this.addMine) {
+          this.currentLevelIndex = 0;
+          this.currentLevel = levels[this.currentLevelIndex];
+        } else {
+          this.addMine = false;
+        }
+
         let numberSet = new Set();
-        for (let i = 0; i < displaySize; i++) {
+        for (let i = 1; i < displaySize - 1; i++) {
           numberSet.add(i);
         }
 
         let randomIndex = Math.floor(Math.random() * numberSet.size);
-        let randomNumber = [...numberSet][randomIndex];
+        let randomPos = [...numberSet][randomIndex];
 
-        numberSet.delete(randomNumber);
-        player.position = randomNumber;
-
-        for (let i = 0; i < mines.length; i++) {
+        mines = [];
+        for (let i = 0; i < this.currentLevel.numberOfMines; i++) {
           randomIndex = Math.floor(Math.random() * numberSet.size);
-          randomNumber = [...numberSet][randomIndex];
-          numberSet.delete(randomNumber);
-          mines[i].position = randomNumber;
+          randomPos = [...numberSet][randomIndex];
+          numberSet.delete(randomPos);
+          numberSet.delete(randomPos - 1);
+          numberSet.delete(randomPos + 1);
+          let mine = new Player(
+            this.currentLevel.mineColor,
+            randomPos,
+            displaySize
+          ); // Initializing mine using the Player class
+          mines.push(mine);
         }
 
         this.gameState = "SHOW_MINES";
         break;
-
-      // // Game is over. Show winner and clean everything up so we can start a new game.
-      // case "SCORE":
-      //   // reset everyone's score
-      //   player.score = 0;
-
-      //   // put the target somewhere else, so we don't restart the game with player and target in the same place
-      //   target.position = parseInt(random(1, displaySize));
-
-      //   //light up w/ winner color by populating all pixels in buffer with their color
-      //   display.setAllPixels(score.winner);
-
-      //   break;
 
       // Not used, it's here just for code compliance
       default:
@@ -150,22 +177,43 @@ class Controller {
 // This function gets called when a key on the keyboard is pressed
 function keyPressed() {
   // Move player one to the left if letter A is pressed
-  if ((key == "A" || key == "a") && !player.midJump) {
+  if (
+    (key == "A" || key == "a") &&
+    controller.gameState == "PLAY" &&
+    player.endReached &&
+    !player.midJump
+  ) {
     player.move(-1);
   }
 
   // And so on...
-  if ((key == "D" || key == "d") && !player.midJump) {
+  if (
+    (key == "D" || key == "d") &&
+    !player.endReached &&
+    controller.gameState == "PLAY" &&
+    !player.midJump
+  ) {
+    console.log("yessss");
     player.move(1);
   }
 
-  if (key == "W" || key == "w") {
+  if (
+    (key == "W" || key == "w") &&
+    !player.endReached &&
+    player.position < displaySize - 2 &&
+    controller.gameState == "PLAY"
+  ) {
     controller.jumpDirection = 1;
     player.jump(controller.jumpDirection);
     controller.gameState = "JUMP";
   }
 
-  if (key == "Q" || key == "q") {
+  if (
+    (key == "Q" || key == "q") &&
+    player.endReached &&
+    player.position > 1 &&
+    controller.gameState == "PLAY"
+  ) {
     controller.jumpDirection = -1;
     player.jump(controller.jumpDirection);
     controller.gameState = "JUMP";
@@ -173,7 +221,8 @@ function keyPressed() {
 
   // When you press the letter R, the game resets back to the play state
   if (key == "R" || key == "r") {
-    clearTimeout(controller.timer);
+    controller.addMine = false;
+    controller.currentLevelIndex = 0;
     controller.gameState = "RESET";
   }
 }
