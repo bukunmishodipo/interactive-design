@@ -197,27 +197,28 @@ function keyPressed() {
     player.move(1);
   }
 
-  if (
-    (key == "W" || key == "w") &&
-    !player.endReached &&
-    player.position < displaySize - 2 &&
-    controller.gameState == "PLAY"
-  ) {
-    controller.jumpDirection = 1;
-    player.jump(controller.jumpDirection);
-    controller.gameState = "JUMP";
+  if ((key == "W" || key == "w") && controller.gameState == "PLAY") {
+    if (!player.endReached && player.position < displaySize - 2) {
+      controller.jumpDirection = 1;
+      player.jump(controller.jumpDirection);
+      controller.gameState = "JUMP";
+    } else if (player.endReached && player.position > 1) {
+      controller.jumpDirection = -1;
+      player.jump(controller.jumpDirection);
+      controller.gameState = "JUMP";
+    }
   }
 
-  if (
-    (key == "Q" || key == "q") &&
-    player.endReached &&
-    player.position > 1 &&
-    controller.gameState == "PLAY"
-  ) {
-    controller.jumpDirection = -1;
-    player.jump(controller.jumpDirection);
-    controller.gameState = "JUMP";
-  }
+  // if (
+  //   (key == "Q" || key == "q") &&
+  //   player.endReached &&
+  //   player.position > 1 &&
+  //   controller.gameState == "PLAY"
+  // ) {
+  //   controller.jumpDirection = -1;
+  //   player.jump(controller.jumpDirection);
+  //   controller.gameState = "JUMP";
+  // }
 
   // When you press the letter R, the game resets back to the play state
   if (key == "R" || key == "r") {
